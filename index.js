@@ -3,12 +3,6 @@
 const fs = require('fs');
 
 // Method #2 to wrap the lstat function with promise
-
-// const util = require('util');
-// const lstat = util.promisify(fs.lstat);
-
-
-// Method #2 to wrap the lstat function with promise
 const {lstat} = fs.promises;
 
 
@@ -17,32 +11,16 @@ fs.readdir(process.cwd(), async (err, fileNames) =>{
         console.log(err);
     }
 
-    // Very bad code here
+    const allPromises = fileNames.map( filename =>{
+        return lstat(filename);
+    })
 
-    for (let fileName of fileNames){
+    const allStats = await Promise.all(allPromises);
 
-        try{
-            const stats = await lstat(fileName);
+    for(let stats of allStats){
+        const index = allStats.indexOf(stats);
 
-            console.log(fileName, stats.isFile());
-        }catch(err) {
-            console.log(err);
-        } 
+        console.log(fileNames[index], stats.isFile());
     }
+
 });
-
-
-// Method #1 to wrap the lstat function with promise
-
-
-// const lstat = fileName => {
-//     return new Promise( (resolve, reject) => {
-//         fs.lstat(fileName, (err, stats)=>{
-//             if(err){
-//                 reject(err);
-//             }
-
-//             resolve(stats);
-//         });
-//     });
-// };
