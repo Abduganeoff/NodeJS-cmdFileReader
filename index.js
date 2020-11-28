@@ -2,35 +2,47 @@
 
 const fs = require('fs');
 
+// Method #2 to wrap the lstat function with promise
 
-fs.readdir(process.cwd(), (err, fileNames) =>{
+// const util = require('util');
+// const lstat = util.promisify(fs.lstat);
+
+
+// Method #2 to wrap the lstat function with promise
+const {lstat} = fs.promises;
+
+
+fs.readdir(process.cwd(), async (err, fileNames) =>{
     if(err){
         console.log(err);
     }
 
     // Very bad code here
 
-    const statsList = Array(fileNames.length).fill(null);
     for (let fileName of fileNames){
-        const index = fileNames.indexOf(fileName);
 
-        fs.lstat(fileName, (err, status)=>{
-            if(err){
-                console.log(err);
-            }
+        try{
+            const stats = await lstat(fileName);
 
-            statsList[index] = status;
-
-            const ready = statsList.every((stats)=> {
-                return stats;
-            });
-
-            if(ready) {
-                statsList.forEach((stats, index)=>{
-                    console.log(fileNames[index], stats.isFile());
-                });
-            }
-
-        })
+            console.log(fileName, stats.isFile());
+        }catch(err) {
+            console.log(err);
+        } 
     }
-})
+});
+
+
+// Method #1 to wrap the lstat function with promise
+
+
+// const lstat = fileName => {
+//     return new Promise( (resolve, reject) => {
+//         fs.lstat(fileName, (err, stats)=>{
+//             if(err){
+//                 reject(err);
+//             }
+
+//             resolve(stats);
+//         });
+//     });
+// };
