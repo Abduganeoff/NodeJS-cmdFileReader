@@ -5,14 +5,22 @@ const fs = require('fs');
 // Method #2 to wrap the lstat function with promise
 const {lstat} = fs.promises;
 
+const chalk = require('chalk');
+chalk.enabled = true;
+chalk.level = 3;
 
-fs.readdir(process.cwd(), async (err, fileNames) =>{
+const path = require('path');
+
+const currentDir = process.argv[2] || process.cwd();
+
+
+fs.readdir(currentDir, async (err, fileNames) =>{
     if(err){
         console.log(err);
     }
 
     const allPromises = fileNames.map( filename =>{
-        return lstat(filename);
+        return lstat(path.join(currentDir, filename));
     })
 
     const allStats = await Promise.all(allPromises);
@@ -20,7 +28,11 @@ fs.readdir(process.cwd(), async (err, fileNames) =>{
     for(let stats of allStats){
         const index = allStats.indexOf(stats);
 
-        console.log(fileNames[index], stats.isFile());
+        if(stats.isFile()){
+            console.log(fileNames[index], stats.isFile());
+        } else {
+            console.log(chalk.blue(fileNames[index]));
+        }
     }
 
 });
